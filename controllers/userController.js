@@ -12,7 +12,8 @@ const login = asyncHandler(async (req, res) => {
   if (user && (await user.matchPassword(password))) {
     res.json({
       _id: user._id,
-      name: user.name,
+      first_name: user.first_name,
+      last_name: user.last_name,
       email: user.email,
       token: generateToken(user._id),
     });
@@ -23,18 +24,19 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const signUp = asyncHandler(async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { first_name, last_name, email, password } = req.body;
   const userExists = await User.findOne({ email });
 
   if (userExists) {
     res.status(400);
-    throw new Error("User already exists!Please login");
+    throw new Error("User already exists! Please login");
   }
-  const user = await User.create({ name, email, password });
+  const user = await User.create({ first_name, last_name, email, password });
   if (user) {
     res.json({
       _id: user._id,
-      name: user.name,
+      first_name: user.first_name,
+      last_name: user.last_name,
       email: user.email,
       token: generateToken(user._id),
     });
