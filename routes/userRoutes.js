@@ -1,5 +1,9 @@
 const express = require("express");
 const {
+  uploadImage,
+  uploadImageOnCloud,
+} = require("../controllers/imageController");
+const {
   signUp,
   login,
   updateProfile,
@@ -11,8 +15,8 @@ const router = express.Router();
 
 router
   .route("/")
-  .post(signUp)
-  .patch(protect, updateProfile)
+  .post(uploadImage, uploadImageOnCloud, signUp)
+  .patch(protect, uploadImage, uploadImageOnCloud, updateProfile)
   .get(protect, getProfile);
 router.route("/login").post(login);
 router.route("/:id").get(protect, getProfileById);
