@@ -9,6 +9,8 @@ const {
   errorHandler,
 } = require("./middleware/errorMiddleware");
 const userRouter = require("./routes/userRoutes");
+const projectRouter = require("./routes/projectRoutes");
+const commentRouter = require("./routes/commentRoutes");
 require("dotenv").config();
 const morgan = require("morgan");
 
@@ -39,6 +41,8 @@ cloudinary.config({
 });
 
 app.use("/api/users", userRouter);
+app.use("/api/project", projectRouter);
+app.use("/api/comment", commentRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

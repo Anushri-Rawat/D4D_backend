@@ -71,5 +71,9 @@ userSchema.pre("save", async function (next) {
   this.password = await bcrypt.hash(this.password, 10);
 });
 
+userSchema.virtual("full_name").get(function () {
+  return `${this.first_name} ${this.last_name}`;
+});
+
 const User = mongoose.model("User", userSchema);
 module.exports = User;
