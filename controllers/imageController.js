@@ -24,7 +24,7 @@ const upload = multer({
   storage: multerStorage,
   fileFilter: multerFilter,
 });
-exports.uploadImage = upload.single("image");
+exports.uploadImage = upload.single("profile_image");
 exports.uploadImageOnCloud = async (req, res, next) => {
   try {
     if (!req.file) return next();
