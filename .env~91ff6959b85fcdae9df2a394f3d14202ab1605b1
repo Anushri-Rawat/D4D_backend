@@ -1,0 +1,6 @@
+NODE_ENV=production
+PORT=5000
+MONGO_URI=mongodb+srv://Anushri_Rawat:abcd1234@cluster0.preozzr.mongodb.net/D4DHub
+JWT_SECRET=aggfscxzxjjugerfsgghbavdsfff
+JWT_EXPIRES_IN=30d
+

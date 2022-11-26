@@ -8,8 +8,9 @@ const {
   likeProject,
 } = require("../controllers/projectController");
 const {
-  uploadImage,
-  uploadImageOnCloud,
+  upload,
+  uploadVideoOnCloud,
+  uploadMultipleImagesOnCloud,
 } = require("../controllers/imageController");
 const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
@@ -17,11 +18,24 @@ const router = express.Router();
 router.use(protect);
 router
   .route("/")
-  .post(uploadImage, uploadImageOnCloud, createProject)
+  .post(
+    upload.array("images_url", 5),
+    uploadMultipleImagesOnCloud,
+    createProject
+  )
   .get(getAllProjects);
+
+router
+  .route("/:id/upload_video")
+  .post(upload.single("video_url"), uploadVideoOnCloud, updateproject);
+
 router
   .route("/:id")
-  .patch(uploadImage, uploadImageOnCloud, updateproject)
+  .patch(
+    upload.array("images_url", 5),
+    uploadMultipleImagesOnCloud,
+    updateproject
+  )
   .delete(deleteProject)
   .get(getProjectById);
 router.route("/like/:project_id").post(likeProject);

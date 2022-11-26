@@ -31,7 +31,7 @@ const getComment = asyncHandler(async (req, res) => {
   const { project_id } = req.params;
   const project = await Project.findById(Types.ObjectId(project_id));
   if (!project) {
-    res.status(400);
+    res.status(404);
     throw new Error("Project not found");
   }
   const comments = await Comment.find({ project_id })
@@ -69,7 +69,7 @@ const deleteComment = asyncHandler(async (req, res) => {
   const { comment_id } = req.params;
   const comment = await Comment.findById(comment_id);
   if (!comment) {
-    res.status(400);
+    res.status(404);
     throw new Error("Comment not found");
   }
   const project = await Project.findById(comment.project_id);
@@ -99,7 +99,7 @@ const updateComment = asyncHandler(async (req, res) => {
   const { body } = req.body;
   const comment = await Comment.findById(comment_id);
   if (!comment) {
-    res.status(400);
+    res.status(404);
     throw new Error("Comment not found");
   }
   if (req.user._id.toString() === comment.user_id.toString()) {
