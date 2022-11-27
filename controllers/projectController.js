@@ -21,7 +21,7 @@ const getProjectById = asyncHandler(async (req, res) => {
     "likesCount commentsCount"
   );
   if (!project) {
-    res.status(400);
+    res.status(404);
     throw new Error("Project not found");
   }
   res.status(200).json(project);
@@ -31,9 +31,9 @@ const createProject = asyncHandler(async (req, res) => {
   const {
     name,
     description,
-    required_skills,
     video_url,
     images_url,
+    required_skills,
     source_code_link,
     deployed_link,
     project_start_date,
@@ -42,7 +42,7 @@ const createProject = asyncHandler(async (req, res) => {
   const projectExists = await Project.findOne({ name });
 
   if (projectExists) {
-    res.status(400);
+    res.status(404);
     throw new Error(
       "Project already exists! Please edit the same project or try different project name"
     );
@@ -62,7 +62,7 @@ const createProject = asyncHandler(async (req, res) => {
   if (project) {
     res.status(201).json(project);
   } else {
-    res.status(400);
+    res.status(404);
     throw new Error("Invalid user data");
   }
 });
@@ -72,17 +72,17 @@ const updateproject = asyncHandler(async (req, res) => {
   const {
     name,
     description,
-    required_skills,
     video_url,
     images_url,
+    required_skills,
     source_code_link,
     deployed_link,
     project_start_date,
     project_end_date,
   } = req.body;
-  const project = Project.findById(id);
+  const project = await Project.findById(id);
   if (!project) {
-    res.status(400);
+    res.status(404);
     throw new Error("Project not found");
   }
   if (req.user._id.toString() == project.user_id.toString()) {
@@ -110,7 +110,7 @@ const deleteProject = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const project = await Project.findById(id);
   if (!project) {
-    res.status(400);
+    res.status(404);
     throw new Error("Project not found");
   }
   if (req.user._id.toString() === project.user_id.toString()) {
@@ -122,7 +122,7 @@ const likeProject = asyncHandler(async (req, res) => {
   const { project_id } = req.params;
   const project = await Project.findById(project_id);
   if (!project) {
-    res.status(400);
+    res.status(404);
     throw new Error("Project not found");
   }
   const isProjectLiked = project.isProjectLiked(req.user._id);

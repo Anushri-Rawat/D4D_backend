@@ -19,7 +19,7 @@ const projectSchema = new mongoose.Schema(
     required_skills: [String],
     video_url: String,
     images_url: [String],
-    source_code_link: String,
+    source_code_link: [String],
     deployed_link: String,
     project_start_date: Date,
     project_end_date: Date,
