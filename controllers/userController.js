@@ -14,6 +14,7 @@ const login = asyncHandler(async (req, res) => {
       _id: user._id,
       first_name: user.first_name,
       last_name: user.last_name,
+      full_name: user.full_name,
       email: user.email,
       token: generateToken(user._id),
     });
@@ -37,6 +38,7 @@ const signUp = asyncHandler(async (req, res, next) => {
       _id: user._id,
       first_name: user.first_name,
       last_name: user.last_name,
+      full_name: user.full_name,
       email: user.email,
       token: generateToken(user._id),
     });
@@ -50,6 +52,7 @@ const updateProfile = asyncHandler(async (req, res) => {
   const userExists = await User.findById(req.user._id);
   if (userExists) {
     const {
+      username,
       city,
       country,
       state,
@@ -63,6 +66,7 @@ const updateProfile = asyncHandler(async (req, res) => {
     const user = await User.findByIdAndUpdate(
       req.user._id,
       {
+        username,
         city,
         country,
         state,
@@ -78,8 +82,10 @@ const updateProfile = asyncHandler(async (req, res) => {
     if (user) {
       res.status(200).json({
         _id: user._id,
+        username: user.username,
         first_name: user.first_name,
         last_name: user.last_name,
+        full_name: user.full_name,
         email: user.email,
         city: user.city,
         state: user.state,
@@ -108,6 +114,8 @@ const getProfile = asyncHandler(async (req, res) => {
       _id: user._id,
       first_name: user.first_name,
       last_name: user.last_name,
+      full_name: user.full_name,
+      username: user.username,
       email: user.email,
       city: user.city,
       state: user.state,
@@ -133,10 +141,12 @@ const getProfileById = asyncHandler(async (req, res) => {
       _id: user._id,
       first_name: user.first_name,
       last_name: user.last_name,
+      full_name: user.full_name,
       email: user.email,
       city: user.city,
       state: user.state,
       country: user.country,
+      username: user.username,
       skills: user.skills,
       title: user.title,
       description: user.description,

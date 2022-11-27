@@ -8,6 +8,9 @@ const validateUrl = (val) => {
 };
 const userSchema = mongoose.Schema(
   {
+    username: {
+      type: String,
+    },
     first_name: {
       type: String,
       required: true,
@@ -66,6 +69,10 @@ userSchema.pre("save", async function (next) {
     next();
   }
   this.password = await bcrypt.hash(this.password, 10);
+});
+
+userSchema.virtual("full_name").get(function () {
+  return `${this.first_name} ${this.last_name}`;
 });
 
 const User = mongoose.model("User", userSchema);
