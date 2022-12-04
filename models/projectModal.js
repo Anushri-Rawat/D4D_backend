@@ -35,6 +35,10 @@ const projectSchema = new mongoose.Schema(
         ref: "Comment",
       },
     ],
+    viewsCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
