@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Comment = require("../models/CommentModal");
 const Project = require("../models/projectModal");
+const User = require("../models/userModal");
 const { Types } = require("mongoose");
 
 const getAllProjects = asyncHandler(async (req, res) => {
@@ -15,6 +16,54 @@ const getAllProjects = asyncHandler(async (req, res) => {
   }
 });
 
+const getMostLikedProjects = asyncHandler(async (req, res) => {
+  const projects = await Project.aggregate([
+    {
+      $match: {},
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "user_id",
+        foreignField: "_id",
+        as: "user",
+      },
+    },
+    {
+      $group: {
+        _id: "$_id",
+        doc: { $first: "$$ROOT" },
+        totalLikes: {
+          $sum: {
+            $size: "$likes",
+          },
+        },
+      },
+    },
+
+    {
+      $sort: {
+        totalLikes: -1,
+      },
+    },
+
+    {
+      $limit: 4,
+    },
+    { $replaceRoot: { newRoot: "$doc" } },
+  ]);
+
+  res.status(200).json(projects);
+});
+
+const getMostViewedProjects = asyncHandler(async (req, res) => {
+  const projects = await Project.find({})
+    .sort({ viewsCount: -1 })
+    .limit(4)
+    .populate("user_id");
+  res.status(200).json(projects);
+});
+
 const getProjectById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const project = await Project.findById(id).populate(
@@ -23,6 +72,10 @@ const getProjectById = asyncHandler(async (req, res) => {
   if (!project) {
     res.status(404);
     throw new Error("Project not found");
+  }
+  if (!project.user_id.equals(req.user._id)) {
+    project.viewsCount += 1;
+    project.save();
   }
   res.status(200).json(project);
 });
@@ -142,6 +195,8 @@ const likeProject = asyncHandler(async (req, res) => {
 
 module.exports = {
   getAllProjects,
+  getMostLikedProjects,
+  getMostViewedProjects,
   getProjectById,
   createProject,
   updateproject,

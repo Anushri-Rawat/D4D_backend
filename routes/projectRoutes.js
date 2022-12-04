@@ -6,6 +6,8 @@ const {
   deleteProject,
   getProjectById,
   likeProject,
+  getMostLikedProjects,
+  getMostViewedProjects,
 } = require("../controllers/projectController");
 const {
   upload,
@@ -15,6 +17,8 @@ const {
 const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
 
+router.get("/most_liked", getMostLikedProjects);
+router.get("/most_viewed", getMostViewedProjects);
 router.use(protect);
 router
   .route("/")
