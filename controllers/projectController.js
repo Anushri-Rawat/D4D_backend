@@ -4,9 +4,15 @@ const Project = require("../models/projectModal");
 const { Types } = require("mongoose");
 
 const getAllProjects = asyncHandler(async (req, res) => {
-  const projects = await Project.find({ user_id: req.user._id })
+  const { id } = req.params;
+  const projects = await Project.find({ user_id: id })
     .populate("commentsCount")
-    .populate("likesCount");
+    .populate("likesCount")
+    .populate({ path: "user_id", select: "username,full_name, profile_image" })
+    .populate({
+      path: "comments",
+      select: "body user_id",
+    });
   if (projects.length <= 0) {
     res.status(400);
     throw new Error("No projects yet posted");
@@ -17,9 +23,16 @@ const getAllProjects = asyncHandler(async (req, res) => {
 
 const getProjectById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const project = await Project.findById(id).populate(
-    "likesCount commentsCount"
-  );
+  const project = await Project.findById(id)
+    .populate("likesCount commentsCount")
+    .populate({
+      path: "user_id",
+      select: "username first_name last_name profile_image",
+    })
+    .populate({
+      path: "comments",
+      select: "body user_id",
+    });
   if (!project) {
     res.status(404);
     throw new Error("Project not found");
@@ -101,7 +114,10 @@ const updateproject = asyncHandler(async (req, res) => {
         project_end_date,
       },
       { returnDocument: "after" }
-    ).populate({ path: "user_id", select: "username,full_name" });
+    ).populate({
+      path: "user_id",
+      select: "username first_name last_name profile_image",
+    });
     res.status(200).send(updatedProject);
   }
 });
@@ -116,10 +132,17 @@ const deleteProject = asyncHandler(async (req, res) => {
   if (req.user._id.toString() === project.user_id.toString()) {
     await Project.findByIdAndDelete(id);
     await Comment.deleteMany({ project_id: Types.ObjectId(id) });
+    res.status(200);
+  } else {
+    res.status(401);
+    throw new Error(`Only the author of projects can delete the project`);
   }
 });
+
 const likeProject = asyncHandler(async (req, res) => {
   const { project_id } = req.params;
+  console.log(project_id);
+
   const project = await Project.findById(project_id);
   if (!project) {
     res.status(404);
@@ -132,10 +155,12 @@ const likeProject = asyncHandler(async (req, res) => {
   } else {
     query = { $push: { likes: req.user._id } };
   }
-  const updatedProject = await Project.findByIdAndUpdate(
-    project_id,
-    query
-  ).populate("likesCount commentsCount");
+  const updatedProject = await Project.findByIdAndUpdate(project_id, query)
+    .populate("likesCount commentsCount")
+    .populate({
+      path: "comments",
+      select: "user_id",
+    });
 
   res.status(200).json(updatedProject);
 });

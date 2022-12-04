@@ -11,6 +11,16 @@ const createComment = asyncHandler(async (req, res) => {
     res.status(400);
     throw new Error("Project not found");
   }
+  const commentExists = await Comment.findOne({
+    project_id,
+    user_id: Types.ObjectId(req.user._id),
+  });
+  if (commentExists) {
+    res.status(400);
+    throw new Error(
+      "User Comment already exists.Please upldate your comment only."
+    );
+  }
   const comment = await Comment.create({
     project_id,
     user_id: req.user._id,
@@ -18,8 +28,8 @@ const createComment = asyncHandler(async (req, res) => {
     createdAt: Date.now(),
   });
   await comment.populate({
-    path: "user",
-    select: "username first_name last_name",
+    path: "user_id",
+    select: "username first_name last_name profile_image",
   });
   await Project.findByIdAndUpdate(project_id, {
     $push: { comments: comment._id },
@@ -36,8 +46,8 @@ const getComment = asyncHandler(async (req, res) => {
   }
   const comments = await Comment.find({ project_id })
     .populate({
-      path: "user",
-      select: "first_name last_name username",
+      path: "user_id",
+      select: "username first_name last_name profile_image title",
     })
     .sort({ createdAt: -1 });
   await Project.findByIdAndUpdate(project_id, {
@@ -59,8 +69,7 @@ const getComment = asyncHandler(async (req, res) => {
     },
   ]);
   if (commentAgg.length == 0) {
-    res.status(404);
-    throw new Error("No comments found");
+    res.status(200).json({ comments: [] });
   }
   res.status(200).json({ comments, commentsCount: commentAgg[0].count });
 });
@@ -85,7 +94,7 @@ const deleteComment = asyncHandler(async (req, res) => {
         comments: Types.ObjectId(comment_id),
       },
     });
-    res.status(200);
+    res.status(200).json("deleted");
   } else {
     res.status(401);
     throw new Error(
@@ -111,7 +120,10 @@ const updateComment = asyncHandler(async (req, res) => {
         isEdited: true,
       },
       { returnDocument: "after" }
-    ).populate({ path: "user", select: "username first_name last_name" });
+    ).populate({
+      path: "user_id",
+      select: "username first_name last_name profile_image",
+    });
     res.status(200).json(updatedComment);
   } else {
     res.status(401);

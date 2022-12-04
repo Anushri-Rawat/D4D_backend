@@ -15,6 +15,7 @@ const {
 const { protect } = require("../middleware/authMiddleware");
 const router = express.Router();
 
+router.route("/:id").get(getProjectById);
 router.use(protect);
 router
   .route("/")
@@ -22,8 +23,8 @@ router
     upload.array("images_url", 5),
     uploadMultipleImagesOnCloud,
     createProject
-  )
-  .get(getAllProjects);
+  );
+router.route("/all/:id").get(getAllProjects);
 
 router
   .route("/:id/upload_video")
@@ -36,8 +37,8 @@ router
     uploadMultipleImagesOnCloud,
     updateproject
   )
-  .delete(deleteProject)
-  .get(getProjectById);
+  .delete(deleteProject);
+
 router.route("/like/:project_id").post(likeProject);
 
 module.exports = router;
