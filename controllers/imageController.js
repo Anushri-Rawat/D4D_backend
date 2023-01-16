@@ -36,7 +36,7 @@ exports.uploadImageOnCloud = async (req, res, next) => {
           console.log(error);
           return next(error);
         }
-        req.body.profile_url = result.url;
+        req.body.profile_image = result.url;
       }
     );
     fs.unlink(`images/userImages/${fileName}`, (error) => {

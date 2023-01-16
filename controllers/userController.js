@@ -57,7 +57,7 @@ const updateProfile = asyncHandler(async (req, res) => {
       country,
       state,
       profile_image,
-      linked_profile_link,
+      linkedin_profile_link,
       github_profile_link,
       description,
       skills,
@@ -71,7 +71,7 @@ const updateProfile = asyncHandler(async (req, res) => {
         country,
         state,
         profile_image,
-        linked_profile_link,
+        linkedin_profile_link,
         github_profile_link,
         description,
         skills,
@@ -93,7 +93,7 @@ const updateProfile = asyncHandler(async (req, res) => {
         skills: user.skills,
         title: user.title,
         description: user.description,
-        linked_profile_link: user.linked_profile_link,
+        linkedin_profile_link: user.linkedin_profile_link,
         github_profile_link: user.github_profile_link,
         profile_image: user.profile_image,
       });
@@ -123,7 +123,7 @@ const getProfile = asyncHandler(async (req, res) => {
       skills: user.skills,
       title: user.title,
       description: user.description,
-      linked_profile_link: user.linked_profile_link,
+      linkedin_profile_link: user.linkedin_profile_link,
       github_profile_link: user.github_profile_link,
       profile_image: user.profile_image,
     });
@@ -150,7 +150,7 @@ const getProfileById = asyncHandler(async (req, res) => {
       skills: user.skills,
       title: user.title,
       description: user.description,
-      linked_profile_link: user.linked_profile_link,
+      linkedin_profile_link: user.linkedin_profile_link,
       github_profile_link: user.github_profile_link,
       profile_image: user.profile_image,
     });
@@ -160,4 +160,10 @@ const getProfileById = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { login, signUp, updateProfile, getProfile, getProfileById };
+module.exports = {
+  login,
+  signUp,
+  updateProfile,
+  getProfile,
+  getProfileById,
+};

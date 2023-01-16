@@ -35,6 +35,10 @@ const projectSchema = new mongoose.Schema(
         ref: "Comment",
       },
     ],
+    viewsCount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,
@@ -42,19 +46,13 @@ const projectSchema = new mongoose.Schema(
   }
 );
 
-projectSchema.virtual("commentsCount", {
-  ref: "Comment",
-  localField: "comments",
-  foreignField: "_id",
-  count: true,
-});
-
 projectSchema.virtual("likesCount", {
   ref: "User",
   localField: "likes",
   foreignField: "_id",
   count: true,
 });
+
 projectSchema.methods.isProjectLiked = function (userId) {
   return this.likes.some((user) => {
     return user._id.toString() === userId.toString();

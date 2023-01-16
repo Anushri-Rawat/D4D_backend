@@ -1,4 +1,5 @@
 const asyncHandler = require("express-async-handler");
+const mongoose = require("mongoose");
 const { Types } = require("mongoose");
 const Project = require("../models/projectModal");
 const Comment = require("../models/CommentModal");
@@ -38,7 +39,7 @@ const createComment = asyncHandler(async (req, res) => {
 });
 
 const getComment = asyncHandler(async (req, res) => {
-  const { project_id } = req.params;
+  const project_id = req.params.project_id.trim();
   const project = await Project.findById(Types.ObjectId(project_id));
   if (!project) {
     res.status(404);
@@ -49,12 +50,23 @@ const getComment = asyncHandler(async (req, res) => {
       path: "user_id",
       select: "username first_name last_name profile_image title",
     })
+    .populate({
+      path: "replies",
+      populate: {
+        path: "user_id",
+        select: "username first_name last_name profile_image",
+      },
+    })
     .sort({ createdAt: -1 });
-  await Project.findByIdAndUpdate(project_id, {
-    $push: {
-      comments: comments._id,
+  await Project.findByIdAndUpdate(
+    project_id,
+    {
+      $push: {
+        comments: comments._id,
+      },
     },
-  });
+    { returnDocument: "after" }
+  );
   const commentAgg = await Comment.aggregate([
     {
       $match: {
@@ -89,12 +101,17 @@ const deleteComment = asyncHandler(async (req, res) => {
     req.user._id.toString() === commentAuthorId.toString() ||
     req.user._id.toString() === projectAuthorId.toString()
   ) {
-    await Comment.findByIdAndDelete(comment_id, {
-      $pull: {
-        comments: Types.ObjectId(comment_id),
+    await Comment.findByIdAndDelete(comment_id);
+    await Project.findByIdAndUpdate(
+      comment_id,
+      {
+        $pull: {
+          comments: Types.ObjectId(comment_id),
+        },
       },
-    });
-    res.status(200).json("deleted");
+      { returnDocument: "after" }
+    );
+    res.status(200).json({ id: comment_id });
   } else {
     res.status(401);
     throw new Error(
@@ -131,4 +148,45 @@ const updateComment = asyncHandler(async (req, res) => {
   }
 });
 
-module.exports = { createComment, getComment, updateComment, deleteComment };
+const createReply = asyncHandler(async (req, res) => {
+  const { comment_id } = req.params;
+  const { body } = req.body;
+  const comment = await Comment.findById(comment_id);
+  if (!comment) {
+    res.status(404);
+    throw new Error("Comment not found");
+  }
+
+  const createdComment = await Comment.findByIdAndUpdate(
+    comment_id,
+    {
+      $push: {
+        replies: { user_id: req.user._id, body },
+      },
+    },
+    { returnDocument: "after" }
+  );
+
+  await createdComment.populate({
+    path: "user_id",
+    select: "username first_name last_name profile_image",
+  });
+
+  await createdComment.populate({
+    path: "replies",
+    populate: {
+      path: "user_id",
+      select: "username first_name last_name profile_image",
+    },
+  });
+
+  res.status(200).json(createdComment);
+});
+
+module.exports = {
+  createComment,
+  getComment,
+  updateComment,
+  deleteComment,
+  createReply,
+};

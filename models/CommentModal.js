@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
 
+const repliesSchema = {
+  user_id: { type: mongoose.Schema.ObjectId, ref: "User" },
+  body: String,
+};
+
 const commentSchema = new mongoose.Schema(
   {
     project_id: {
@@ -15,6 +20,10 @@ const commentSchema = new mongoose.Schema(
     isEdited: {
       type: Boolean,
       default: false,
+    },
+    replies: {
+      type: [repliesSchema],
+      default: [],
     },
     createdAt: Date,
     updatedAt: Date,
