@@ -1,6 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const User = require("../models/userModal");
 const generateToken = require("../utils/generateToken");
+const url = require("url");
 
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
@@ -107,6 +108,7 @@ const updateProfile = asyncHandler(async (req, res) => {
   }
 });
 
+//GET MY PROFILE (BY ID OF LOGGED IN USER)
 const getProfile = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
   if (user) {
@@ -159,5 +161,78 @@ const getProfileById = asyncHandler(async (req, res) => {
     throw new Error("User not found");
   }
 });
+//FIND PROFILE BY TITLE/NAME/SKILLS
+const getProfiles = asyncHandler(async (req, res) => {
+  console.log(req);
+  const { query } = url.parse(req.url, true);
+  const fields = ["full_name", "title", "skills"];
 
-module.exports = { login, signUp, updateProfile, getProfile, getProfileById };
+  for (let key in query) {
+    if (!fields.includes(key)) {
+      // return next(
+      //   new AppError(
+
+      //     400
+      //   )
+      // );
+      res.status(400);
+      throw new Error(`The parameter ${key} is not supported for searching.`);
+    }
+  }
+  const profiles = await User.aggregate([
+    {
+      $addFields: {
+        nameFilter: {
+          $concat: ["$first_name", " ", "$last_name"],
+        },
+      },
+    },
+    {
+      $match: {
+        nameFilter: {
+          $regex: query.full_name ? query.full_name : "",
+          $options: "i",
+        },
+        title: {
+          $regex: query.title ? query.title : "",
+          $options: "i",
+        },
+        skills: {
+          $regex: query.skills ? query.skills : "",
+          $options: "i",
+        },
+      },
+    },
+    {
+      $project: {
+        __v: 0,
+        password: 0,
+        nameFilter: 0,
+      },
+    },
+  ]);
+
+  // const queryObj = {};
+  // for (let key in query) {
+  //   if (fields.includes(key)) {
+  //     //query[key].replace("+", " ");
+  //     queryObj[key] = { $regex: query[key], $options: "i" };
+  //   }
+  // }
+  // console.log(queryObj);
+  // const getQuery = User.find({ ...queryObj });
+  // const profiles = await getQuery.select("-__v -password");
+  res.status(200).json({
+    total: profiles.length,
+    profiles,
+  });
+});
+
+module.exports = {
+  login,
+  signUp,
+  updateProfile,
+  getProfile,
+  getProfileById,
+  getProfiles,
+};

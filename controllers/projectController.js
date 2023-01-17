@@ -3,6 +3,7 @@ const Comment = require("../models/CommentModal");
 const Project = require("../models/projectModal");
 const User = require("../models/userModal");
 const { Types } = require("mongoose");
+const url = require("url");
 
 const getAllProjects = asyncHandler(async (req, res) => {
   const projects = await Project.find({ user_id: req.user._id })
@@ -73,7 +74,7 @@ const getProjectById = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Project not found");
   }
-  if (!project.user_id.equals(req.user._id)) {
+  if (req.user_id && !project.user_id.equals(req.user._id)) {
     project.viewsCount += 1;
     project.save();
   }
@@ -193,6 +194,48 @@ const likeProject = asyncHandler(async (req, res) => {
   res.status(200).json(updatedProject);
 });
 
+const getProjects = asyncHandler(async (req, res, next) => {
+  const { query } = url.parse(req.url, true);
+  const fields = ["keyword", "required_skills"];
+
+  for (let key in query) {
+    if (!fields.includes(key)) {
+      // return next(
+      //   new AppError(
+      //     `The parameter ${key} is not supported for searching.`,
+      //     400
+      //   )
+      // );
+      res.status(400);
+      throw new Error(`The parameter ${key} is not supported for searching.`);
+    }
+  }
+  const projects = await Project.aggregate([
+    {
+      $match: {
+        description: {
+          $regex: query.keyword ? query.keyword : "",
+          $options: "i",
+        },
+        required_skills: {
+          $regex: query.required_skills ? query.required_skills : "",
+          $options: "i",
+        },
+      },
+    },
+    {
+      $project: {
+        __v: 0,
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    total: projects.length,
+    projects,
+  });
+});
+
 module.exports = {
   getAllProjects,
   getMostLikedProjects,
@@ -202,4 +245,5 @@ module.exports = {
   updateproject,
   deleteProject,
   likeProject,
+  getProjects,
 };

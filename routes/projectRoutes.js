@@ -8,6 +8,7 @@ const {
   likeProject,
   getMostLikedProjects,
   getMostViewedProjects,
+  getProjects,
 } = require("../controllers/projectController");
 const {
   upload,
@@ -19,6 +20,7 @@ const router = express.Router();
 
 router.get("/most_liked", getMostLikedProjects);
 router.get("/most_viewed", getMostViewedProjects);
+router.get("/search", getProjects);
 router.use(protect);
 router
   .route("/")
