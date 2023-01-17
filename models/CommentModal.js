@@ -1,5 +1,10 @@
 const mongoose = require("mongoose");
 
+const repliesSchema = {
+  user_id: { type: mongoose.Schema.ObjectId, ref: "User" },
+  body: String,
+};
+
 const commentSchema = new mongoose.Schema(
   {
     project_id: {
@@ -16,6 +21,10 @@ const commentSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    replies: {
+      type: [repliesSchema],
+      default: [],
+    },
     createdAt: Date,
     updatedAt: Date,
   },
@@ -24,13 +33,6 @@ const commentSchema = new mongoose.Schema(
     toJSON: { virtuals: true },
   }
 );
-
-commentSchema.virtual("user", {
-  ref: "User",
-  localField: "user_id",
-  foreignField: "_id",
-  justOne: true,
-});
 
 const Comment = mongoose.model("Comment", commentSchema);
 module.exports = Comment;
