@@ -187,7 +187,6 @@ const deleteProject = asyncHandler(async (req, res) => {
 
 const likeProject = asyncHandler(async (req, res) => {
   const { project_id } = req.params;
-  console.log(project_id);
 
   const project = await Project.findById(project_id);
   if (!project) {
@@ -217,12 +216,6 @@ const getProjects = asyncHandler(async (req, res, next) => {
 
   for (let key in query) {
     if (!fields.includes(key)) {
-      // return next(
-      //   new AppError(
-      //     `The parameter ${key} is not supported for searching.`,
-      //     400
-      //   )
-      // );
       res.status(400);
       throw new Error(`The parameter ${key} is not supported for searching.`);
     }
@@ -240,6 +233,7 @@ const getProjects = asyncHandler(async (req, res, next) => {
         },
       },
     },
+
     {
       $project: {
         __v: 0,
@@ -247,9 +241,13 @@ const getProjects = asyncHandler(async (req, res, next) => {
     },
   ]);
 
+  const result = await Project.populate(projects, {
+    path: "user_id",
+    select: { first_name: 1, last_name: 1, username: 1, profile_image: 1 },
+  });
   res.status(200).json({
     total: projects.length,
-    projects,
+    projects: result,
   });
 });
 
