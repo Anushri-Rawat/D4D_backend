@@ -138,6 +138,7 @@ const updateproject = asyncHandler(async (req, res) => {
     project_start_date,
     project_end_date,
   } = req.body;
+  console.log(req.body);
   const project = await Project.findById(id);
   if (!project) {
     res.status(404);

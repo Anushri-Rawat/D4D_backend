@@ -82,8 +82,9 @@ const getComment = asyncHandler(async (req, res) => {
   ]);
   if (commentAgg.length == 0) {
     res.status(200).json({ comments: [] });
+  } else {
+    res.status(200).json({ comments, commentsCount: commentAgg[0].count });
   }
-  res.status(200).json({ comments, commentsCount: commentAgg[0].count });
 });
 
 const deleteComment = asyncHandler(async (req, res) => {
