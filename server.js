@@ -12,6 +12,8 @@ const userRouter = require("./routes/userRoutes");
 const projectRouter = require("./routes/projectRoutes");
 const commentRouter = require("./routes/commentRoutes");
 const collectionRouter = require("./routes/collectionRoutes");
+const conversationRouter = require("./routes/conversationRoutes");
+const messageRouter = require("./routes/messageRoutes");
 
 require("dotenv").config();
 const morgan = require("morgan");
@@ -46,6 +48,8 @@ app.use("/api/users", userRouter);
 app.use("/api/project", projectRouter);
 app.use("/api/comment", commentRouter);
 app.use("/api/collections", collectionRouter);
+app.use("/api/conversation", conversationRouter);
+app.use("/api/message", messageRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
