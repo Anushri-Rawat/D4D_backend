@@ -11,6 +11,7 @@ const createComment = asyncHandler(async (req, res) => {
   if (!project) {
     res.status(400);
     throw new Error("Project not found");
+    return;
   }
   const commentExists = await Comment.findOne({
     project_id,
@@ -21,6 +22,7 @@ const createComment = asyncHandler(async (req, res) => {
     throw new Error(
       "User Comment already exists.Please upldate your comment only."
     );
+    return;
   }
   const comment = await Comment.create({
     project_id,
@@ -44,6 +46,7 @@ const getComment = asyncHandler(async (req, res) => {
   if (!project) {
     res.status(404);
     throw new Error("Project not found");
+    return;
   }
   const comments = await Comment.find({ project_id })
     .populate({
@@ -82,6 +85,7 @@ const getComment = asyncHandler(async (req, res) => {
   ]);
   if (commentAgg.length == 0) {
     res.status(200).json({ comments: [] });
+    return;
   } else {
     res.status(200).json({ comments, commentsCount: commentAgg[0].count });
   }
@@ -93,6 +97,7 @@ const deleteComment = asyncHandler(async (req, res) => {
   if (!comment) {
     res.status(404);
     throw new Error("Comment not found");
+    return;
   }
   const project = await Project.findById(comment.project_id);
   const projectAuthorId = project.user_id;
@@ -113,11 +118,13 @@ const deleteComment = asyncHandler(async (req, res) => {
       { returnDocument: "after" }
     );
     res.status(200).json({ id: comment_id });
+    return;
   } else {
     res.status(401);
     throw new Error(
       `Only the author of the comment or owner can delete comments`
     );
+    return;
   }
 });
 
@@ -128,6 +135,7 @@ const updateComment = asyncHandler(async (req, res) => {
   if (!comment) {
     res.status(404);
     throw new Error("Comment not found");
+    return;
   }
   if (req.user._id.toString() === comment.user_id.toString()) {
     const updatedComment = await Comment.findByIdAndUpdate(
@@ -143,9 +151,11 @@ const updateComment = asyncHandler(async (req, res) => {
       select: "username first_name last_name profile_image",
     });
     res.status(200).json(updatedComment);
+    return;
   } else {
     res.status(401);
     throw new Error("Only the author can update his comment");
+    return;
   }
 });
 
@@ -156,6 +166,7 @@ const createReply = asyncHandler(async (req, res) => {
   if (!comment) {
     res.status(404);
     throw new Error("Comment not found");
+    return;
   }
 
   const createdComment = await Comment.findByIdAndUpdate(
@@ -182,6 +193,7 @@ const createReply = asyncHandler(async (req, res) => {
   });
 
   res.status(200).json(createdComment);
+  return;
 });
 
 module.exports = {

@@ -36,6 +36,7 @@ const userSchema = mongoose.Schema(
     },
     profile_image: {
       type: String,
+      default: "",
       validate: validateUrl,
     },
     city: String,

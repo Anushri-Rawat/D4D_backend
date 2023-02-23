@@ -13,7 +13,8 @@ const getCollection = asyncHandler(async (req, res) => {
       populate: {
         path: "user_id",
       },
-    });
+    })
+    .populate("developer_id");
   if (!collection) {
     res.status(404);
     throw new Error("collection not found");
@@ -28,7 +29,7 @@ const getAllCollections = asyncHandler(async (req, res) => {
 });
 
 const createCollection = asyncHandler(async (req, res) => {
-  const { name, projectId } = req.body;
+  const { name, type, projectId } = req.body;
   const collectionExists = await Collection.findOne({
     name,
     user_id: Types.ObjectId(req.user._id),
@@ -43,11 +44,13 @@ const createCollection = asyncHandler(async (req, res) => {
       project_id: projectId,
       user_id: req.user._id,
       name,
+      type,
     });
   } else {
     collection = await Collection.create({
       user_id: req.user._id,
       name,
+      type,
     });
   }
   res.status(200).json(collection);
@@ -93,13 +96,20 @@ const updateCollection = asyncHandler(async (req, res) => {
 const saveProjectById = asyncHandler(async (req, res) => {
   const { id, collection_id } = req.params;
 
-  const colExists = await Collection.find({
+  const projectExists = await Collection.find({
     _id: Types.ObjectId(collection_id),
     project_id: Types.ObjectId(id),
   });
 
-  if (colExists.length) {
+  if (projectExists.length) {
     throw new Error(`This project already exists in the collection`);
+  }
+
+  const coll = await Collection.findById(collection_id);
+  if (coll.project_id.length === 0) {
+    const project = await Project.findById(id);
+    coll.image = project.images_url[0];
+    await coll.save();
   }
 
   const collection = await Collection.findByIdAndUpdate(
@@ -115,6 +125,42 @@ const saveProjectById = asyncHandler(async (req, res) => {
   res.status(200).json(collection);
 });
 
+const saveUserById = asyncHandler(async (req, res) => {
+  const { id, collection_id } = req.params;
+
+  const developerExists = await Collection.find({
+    _id: Types.ObjectId(collection_id),
+    developer_id: Types.ObjectId(id),
+  });
+
+  if (developerExists.length) {
+    throw new Error(`This project already exists in the collection`);
+  }
+
+  const coll = await Collection.findById(collection_id);
+  if (coll.developer_id.length === 0) {
+    const developer = await User.findById(id);
+    console.log(developer.profile_image);
+    coll.image =
+      developer.profile_image && developer.profile_image !== "null"
+        ? developer.profile_image
+        : "https://yt3.ggpht.com/a/AATXAJzoxYmGmHH2J6Y_mlxostAWeBrsWOZ0LuRx9Q=s900-c-k-c0xffffffff-no-rj-mo";
+    await coll.save();
+  }
+
+  const collection = await Collection.findByIdAndUpdate(
+    collection_id,
+    {
+      $push: {
+        developer_id: Types.ObjectId(id),
+      },
+    },
+    { returnDocument: "after" }
+  );
+
+  res.status(200).json(collection);
+});
+
 module.exports = {
   createCollection,
   saveProjectById,
@@ -122,4 +168,5 @@ module.exports = {
   getCollection,
   deleteCollection,
   updateCollection,
+  saveUserById,
 };

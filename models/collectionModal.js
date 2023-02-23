@@ -8,7 +8,14 @@ const collectionSchema = new mongoose.Schema(
         ref: "Project",
       },
     ],
+    developer_id: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "User",
+      },
+    ],
     name: String,
+    type: String,
     image: {
       type: String,
       default:

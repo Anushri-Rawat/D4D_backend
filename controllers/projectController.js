@@ -3,12 +3,16 @@ const Comment = require("../models/CommentModal");
 const Project = require("../models/projectModal");
 const User = require("../models/userModal");
 const { Types } = require("mongoose");
+const url = require("url");
 
 const getAllProjects = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const projects = await Project.find({ user_id: id })
     .populate("likesCount")
-    .populate({ path: "user_id", select: "username full_name profile_image" });
+    .populate({
+      path: "user_id",
+      select: "username full_name profile_image first_name last_name",
+    });
   if (projects.length <= 0) {
     res.status(400);
     throw new Error("No projects yet posted");
@@ -187,7 +191,6 @@ const deleteProject = asyncHandler(async (req, res) => {
 
 const likeProject = asyncHandler(async (req, res) => {
   const { project_id } = req.params;
-  console.log(project_id);
 
   const project = await Project.findById(project_id);
   if (!project) {
@@ -211,6 +214,47 @@ const likeProject = asyncHandler(async (req, res) => {
   res.status(200).json(updatedProject);
 });
 
+const getProjects = asyncHandler(async (req, res, next) => {
+  const { query } = url.parse(req.url, true);
+  const fields = ["keyword", "required_skills"];
+
+  for (let key in query) {
+    if (!fields.includes(key)) {
+      res.status(400);
+      throw new Error(`The parameter ${key} is not supported for searching.`);
+    }
+  }
+  const projects = await Project.aggregate([
+    {
+      $match: {
+        description: {
+          $regex: query.keyword ? query.keyword : "",
+          $options: "i",
+        },
+        required_skills: {
+          $regex: query.required_skills ? query.required_skills : "",
+          $options: "i",
+        },
+      },
+    },
+
+    {
+      $project: {
+        __v: 0,
+      },
+    },
+  ]);
+
+  const result = await Project.populate(projects, {
+    path: "user_id",
+    select: { first_name: 1, last_name: 1, username: 1, profile_image: 1 },
+  });
+  res.status(200).json({
+    total: projects.length,
+    projects: result,
+  });
+});
+
 module.exports = {
   getAllProjects,
   getMostLikedProjects,
@@ -220,4 +264,5 @@ module.exports = {
   updateproject,
   deleteProject,
   likeProject,
+  getProjects,
 };

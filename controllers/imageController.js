@@ -33,7 +33,6 @@ exports.uploadImageOnCloud = async (req, res, next) => {
       { public_id: `${fileName}` },
       function (error, result) {
         if (error) {
-          console.log(error);
           return next(error);
         }
         req.body.profile_image = result.url;
@@ -44,7 +43,6 @@ exports.uploadImageOnCloud = async (req, res, next) => {
     });
     next();
   } catch (err) {
-    console.log(err);
     next(err);
   }
 };
@@ -61,7 +59,6 @@ exports.uploadVideoOnCloud = async (req, res, next) => {
       },
       function (error, result) {
         if (error) {
-          console.log(error);
           return next(error);
         }
         req.body["video_url"] = result.url;
@@ -74,34 +71,47 @@ exports.uploadVideoOnCloud = async (req, res, next) => {
   } else next();
 };
 
+async function uploadToCloudinary(locaFilePath) {
+  var mainFolderName = "main";
+
+  var filePathOnCloudinary = mainFolderName + "/" + locaFilePath;
+
+  return cloudinary.uploader
+    .upload(locaFilePath, { public_id: filePathOnCloudinary })
+    .then((result) => {
+      fs.unlinkSync(locaFilePath);
+
+      return {
+        message: "Success",
+        url: result.url,
+      };
+    })
+    .catch((error) => {
+      fs.unlinkSync(locaFilePath);
+      return { message: "Fail" };
+    });
+}
+
 exports.uploadMultipleImagesOnCloud = async (req, res, next) => {
   try {
     if (!req.files) return next();
     const files = req.files;
     const urls = [];
-    for (const file of files) {
-      const { path } = file;
-      await cloudinary.v2.uploader.upload(
-        path,
-        { public_id: `${fileName}` },
-        function (error, result) {
-          if (error) {
-            console.log(error);
-            return next(error);
-          }
-          urls.push(result.url);
-        }
-      );
+    const promises = [];
+
+    var imageUrlList = [];
+
+    for (var i = 0; i < req.files.length; i++) {
+      var locaFilePath = req.files[i].path;
+
+      var result = await uploadToCloudinary(locaFilePath);
+      imageUrlList.push(result.url);
     }
-    req.body["images_url"] = urls;
-    for (const file of req.files) {
-      fs.unlink(`images/userImages/${file.fileName}`, (error) => {
-        if (error) return;
-      });
-    }
+
+    req.body["images_url"] = imageUrlList;
+
     next();
   } catch (err) {
-    console.log(err);
     next(err);
   }
 };
