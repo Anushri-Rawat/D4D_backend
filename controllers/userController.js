@@ -163,18 +163,11 @@ const getProfileById = asyncHandler(async (req, res) => {
 });
 //FIND PROFILE BY TITLE/NAME/SKILLS
 const getProfiles = asyncHandler(async (req, res) => {
-  console.log(req);
   const { query } = url.parse(req.url, true);
-  const fields = ["full_name", "title", "skills"];
+  const fields = ["full_name", "title", "skills", "page_number"];
 
   for (let key in query) {
     if (!fields.includes(key)) {
-      // return next(
-      //   new AppError(
-
-      //     400
-      //   )
-      // );
       res.status(400);
       throw new Error(`The parameter ${key} is not supported for searching.`);
     }
@@ -212,19 +205,15 @@ const getProfiles = asyncHandler(async (req, res) => {
     },
   ]);
 
-  // const queryObj = {};
-  // for (let key in query) {
-  //   if (fields.includes(key)) {
-  //     //query[key].replace("+", " ");
-  //     queryObj[key] = { $regex: query[key], $options: "i" };
-  //   }
-  // }
-  // console.log(queryObj);
-  // const getQuery = User.find({ ...queryObj });
-  // const profiles = await getQuery.select("-__v -password");
+  const total = profiles.length;
+  const result = profiles.slice(
+    12 * (query.page_number - 1),
+    Math.min(query.page_number * 12, total)
+  );
+
   res.status(200).json({
-    total: profiles.length,
-    profiles,
+    total,
+    profiles: result,
   });
 });
 
