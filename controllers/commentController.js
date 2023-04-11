@@ -108,8 +108,8 @@ const deleteComment = asyncHandler(async (req, res) => {
     req.user._id.toString() === projectAuthorId.toString()
   ) {
     await Comment.findByIdAndDelete(comment_id);
-    await Project.findByIdAndUpdate(
-      comment_id,
+    await Project.updateOne(
+      { comments: comment_id },
       {
         $pull: {
           comments: Types.ObjectId(comment_id),

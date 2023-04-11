@@ -82,10 +82,12 @@ const getProjectById = asyncHandler(async (req, res) => {
     res.status(404);
     throw new Error("Project not found");
   }
-  // if (!(project.user_id._id.toString() === req.user._id.toString())) {
+  // if (req.user && project.user_id._id.toString() !== req.user._id.toString()) {
   //   project.viewsCount += 1;
   //   project.save();
   // }
+  project.viewsCount += 1;
+  project.save();
   res.status(200).json(project);
 });
 
@@ -142,7 +144,7 @@ const updateproject = asyncHandler(async (req, res) => {
     project_start_date,
     project_end_date,
   } = req.body;
-  console.log(req.body);
+
   const project = await Project.findById(id);
   if (!project) {
     res.status(404);
@@ -153,15 +155,15 @@ const updateproject = asyncHandler(async (req, res) => {
       id,
       {
         user_id: req.user._id,
-        name,
-        description,
-        required_skills,
-        video_url,
-        images_url,
-        source_code_link,
-        deployed_link,
-        project_start_date,
-        project_end_date,
+        name: name || project.name,
+        description: description || project.description,
+        required_skills: required_skills || project.required_skills,
+        video_url: video_url || project.video_url,
+        images_url: images_url || project.images_url,
+        source_code_link: source_code_link || project.source_code_link,
+        deployed_link: deployed_link || project.deployed_link,
+        project_start_date: project_start_date || project.project_start_date,
+        project_end_date: project_end_date || project.project_end_date,
       },
       { returnDocument: "after" }
     ).populate({
