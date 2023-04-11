@@ -218,7 +218,7 @@ const likeProject = asyncHandler(async (req, res) => {
 
 const getProjects = asyncHandler(async (req, res, next) => {
   const { query } = url.parse(req.url, true);
-  const fields = ["keyword", "required_skills"];
+  const fields = ["keyword", "required_skills", "page_number"];
 
   for (let key in query) {
     if (!fields.includes(key)) {
@@ -226,7 +226,8 @@ const getProjects = asyncHandler(async (req, res, next) => {
       throw new Error(`The parameter ${key} is not supported for searching.`);
     }
   }
-  const projects = await Project.aggregate([
+  if (!query["page_number"]) query["page_number"] = 1;
+  let projects = await Project.aggregate([
     {
       $match: {
         description: {
@@ -247,12 +248,17 @@ const getProjects = asyncHandler(async (req, res, next) => {
     },
   ]);
 
-  const result = await Project.populate(projects, {
+  let result = await Project.populate(projects, {
     path: "user_id",
     select: { first_name: 1, last_name: 1, username: 1, profile_image: 1 },
   });
+  const total = result.length;
+  result = result.slice(
+    12 * (query.page_number - 1),
+    Math.min(query.page_number * 12, total)
+  );
   res.status(200).json({
-    total: projects.length,
+    total,
     projects: result,
   });
 });
