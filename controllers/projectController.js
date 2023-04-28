@@ -210,7 +210,7 @@ const likeProject = asyncHandler(async (req, res) => {
     .populate("likesCount")
     .populate({
       path: "user_id",
-      select: "username first_name last_name profile_image",
+      select: "username first_name last_name profile_image title city state",
     });
 
   res.status(200).json(updatedProject);
